@@ -1,74 +1,36 @@
-phpcf
-=====
+# badoo phpcf in docker
 
-**If you need a formatter with PHP7 support, see [here](https://github.com/badoo/phpcf/tree/php7)**
+[![](https://images.microbadger.com/badges/image/imega/phpcf.svg)](http://microbadger.com/images/imega/phpcf "Get your own image badge on microbadger.com")
 
-The formatter was created to basically only modify whitespaces, for example line feed, tabs, spaces, etc. It means that phpcf does not replace similar utilities like PHP Code Sniffer (phpcs) or PHP Coding Standards Fixer (http://cs.sensiolabs.org) by Fabien Potencier. The utility supplements others and does all the "dirty work" with whitespace characters. It is worth noting that our utility respects the initial file formatting and only changes whitespace characters that do not follow the chosen ruleset (some utilities remove all whitespace first and reconstruct file from scratch, which is not necessarily what people want).
+## USAGE
 
-Our utility is extensible and supports arbitrary style sets. You can define your own formatting style pretty easily to replace Badoo formatting standard that is a bit different from PSR.
-
-Below is a little usage example.
- - "phpcf apply <filename>" formats the specified file
- - "phpcf check <filename>" checks that formatting is correct and returns non-zero exit code when file is not formatted properly
-
+Add to .bash_profile
 ```
-$ cat minifier.php
-<?php
-$tokens=token_get_all(file_get_contents($argv[1]));$contents='';foreach($tokens as $tok){if($tok[0]===T_WHITESPACE||$tok[0]===T_COMMENT)continue;if($tok[0]===T_AS||$tok[0]===T_ELSE)$contents.=' '.$tok[1].' '; else $contents.=is_array($tok)?$tok[1]:$tok;}echo$contents."\n";
-
-$ phpcf apply minifier.php
-minifier.php formatted successfully
-
-$ cat minifier.php
-<?php
-$tokens = token_get_all(file_get_contents($argv[1]));
-$contents = '';
-foreach ($tokens as $tok) {
-    if ($tok[0] === T_WHITESPACE || $tok[0] === T_COMMENT) continue;
-    if ($tok[0] === T_AS || $tok[0] === T_ELSE) $contents .= ' ' . $tok[1] . ' ';
-    else $contents .= is_array($tok) ? $tok[1] : $tok;
-}
-echo $contents . "\n";
-
-$ phpcf check minifier.php; echo $?
-minifier.php does not need formatting
-0
+alias phpcf='docker run --rm -it -v `pwd`:/data imega/phpcf'
 ```
 
-Our utility is also capable of formatting part of file. To do so, you need to specify line number ranges after a colon:
-
+just check a file
 ```
-$ cat zebra.php 
-<?php
-echo "White "."strip".PHP_EOL;
-echo "Black "."strip".PHP_EOL; // not formatted
-echo "Arse".PHP_EOL;
-
-$ phpcf apply zebra.php:1-2,4
-zebra.php formatted successfully
-
-$ cat zebra.php 
-<?php
-echo "White " . "strip" . PHP_EOL;
-echo "Black "."strip".PHP_EOL; // not formatted
-echo "Arse" . PHP_EOL;
-
-$ phpcf check zebra.php
-zebra.php issues:
-        Expected one space before binary operators (= < > * . etc)   on line 3 column 14
-        Expected one space after binary operators (= < > * . etc)   on line 3 column 15
-        ...
-
-$ echo $?
-1
+$ phpcf check path/to/file.php
 ```
 
-Even though our utility is written in PHP most files are formatted in a fraction of a second. But in Badoo we have a huge repository that contains millions SLOC, so we wrote a PHP extension that increases formatter performance 100x. All our repository (which is 2 million SLOC at the moment of writing this README) is formatted in 8 seconds on a single i7 core. In order to use the extension you need to compile it from "phpcf-src/ext" folder using "phpize; ./configure; make; make install" and either put "enable_dl = On" in your php.ini or put "extension=phpcf.so" there.
+format file, overwrite it and print report
+```
+$ phpcf apply path/to/file.php
+```
 
-It is worth noting again that phpcf is designed to only change whitespace characters and to do the most simple tasks such as:
- - replacing "<?" with "<?php"
- - removing extra closing tag from the end of file
- - change cyrillic letters to english in function names
- - expressions that are aligned manually using spaces are not touched
+## Alpine Packages
+  - php7-common@community (7.0.12-r0)
+  - musl (1.1.14-r13)
+  - zlib (1.2.8-r2)
+  - libxml2 (2.9.4-r0)
+  - php7@community (7.0.12-r0)
 
-The formatter works as a finite state machine with rules that are set by user instead of using hard-coded replacements. We supply the default config that follows Badoo formatting rules. So if you would like to get automatic "var" -> "public" replacement or similar we suggest looking at PHP-CS-Fixer. The latter does not really touch whitespace characters but it can do much more sophisticated replacements than our utility.
+## The MIT License (MIT)
+
+Copyright © 2016 iMega <info@imega.ru>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
